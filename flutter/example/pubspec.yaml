@@ -1,0 +1,12 @@
+name: glyph_morph_example
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  glyph_morph:
+    path: ..
