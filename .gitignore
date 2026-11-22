@@ -1,0 +1,10 @@
+.DS_Store
+node_modules/
+.dart_tool/
+build/
+pubspec.lock
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+local.properties
