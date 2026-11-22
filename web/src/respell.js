@@ -29,17 +29,21 @@ export const defaultEffect = Object.freeze({
   animateSize: true,
   sizeCurve: [0, 0, 1, 1],
   holdCommonPrefix: false,
+  aberration: { distance: 14, angle: 0, colors: ['#f00', '#0f0', '#00f'] },
 });
 
-/** Letters split into red, green and blue as they blur, with no glow. */
+/**
+ * Letters split into the `aberration` colours as they blur, with no glow.
+ * Change the split with `{ ...chromaticEffect, aberration: { distance: 20 } }`.
+ */
 export const chromaticEffect = Object.freeze({
-  swapOut: { duration: 150, keyframes: [{ at: 0, look: sharp }, { at: 1, look: { blur: 3, opacity: 0.6, y: -6, aberration: 8 } }] },
-  swapIn: { duration: 250, keyframes: [{ at: 0, look: { blur: 3, opacity: 0.6, y: 6, aberration: 8 } }, { at: 1, look: sharp }] },
+  swapOut: { duration: 150, keyframes: [{ at: 0, look: sharp }, { at: 1, look: { blur: 3, opacity: 0.6, y: -6, aberration: 0.6 } }] },
+  swapIn: { duration: 250, keyframes: [{ at: 0, look: { blur: 3, opacity: 0.6, y: 6, aberration: 0.6 } }, { at: 1, look: sharp }] },
   write: {
     duration: 680,
     keyframes: [
-      { at: 0, look: { blur: 6, opacity: 0, y: 4, aberration: 14 } },
-      { at: 0.4, look: { blur: 2, opacity: 0.8, aberration: 8 } },
+      { at: 0, look: { blur: 6, opacity: 0, y: 4, aberration: 1 } },
+      { at: 0.4, look: { blur: 2, opacity: 0.8, aberration: 0.6 } },
       { at: 1, look: sharp },
     ],
   },
@@ -47,8 +51,8 @@ export const chromaticEffect = Object.freeze({
     duration: 340,
     keyframes: [
       { at: 0, look: sharp },
-      { at: 0.6, look: { blur: 2, opacity: 0.8, aberration: 8 } },
-      { at: 1, look: { blur: 6, opacity: 0, y: 4, aberration: 14 } },
+      { at: 0.6, look: { blur: 2, opacity: 0.8, aberration: 0.6 } },
+      { at: 1, look: { blur: 6, opacity: 0, y: 4, aberration: 1 } },
     ],
   },
   glow: { tint: 0, shadows: [] },
@@ -89,7 +93,7 @@ function lerpLook(a, b, t) {
   out.blur = Math.max(out.blur, 0);
   out.opacity = Math.min(Math.max(out.opacity, 0), 1);
   out.glow = Math.min(Math.max(out.glow, 0), 1);
-  out.aberration = Math.max(out.aberration, 0);
+  out.aberration = Math.min(Math.max(out.aberration, 0), 1);
   return out;
 }
 
@@ -175,7 +179,12 @@ export class Respell {
   set(next) {
     if (next === this.text.textContent) return;
     const { respectReducedMotion = true, onComplete, ...effect } = this.options;
-    const e = { ...defaultEffect, ...effect, glow: { ...defaultEffect.glow, ...effect.glow } };
+    const e = {
+      ...defaultEffect,
+      ...effect,
+      glow: { ...defaultEffect.glow, ...effect.glow },
+      aberration: { ...defaultEffect.aberration, ...effect.aberration },
+    };
     const from = this.frame ? this.word : this.measure();
     this.stop();
     this.text.textContent = next;
@@ -185,15 +194,17 @@ export class Respell {
     const glowColor = e.glow.color || style.getPropertyValue('--respell-glow').trim() || '#C0F250';
     const glow = rgbOf(this.el, glowColor);
     const base = rgbOf(this.el, style.color);
+    const tints = e.aberration.colors.map((c) => rgbOf(this.el, c).map((v) => v / 255));
+    const reach = [Math.cos(e.aberration.angle), Math.sin(e.aberration.angle)].map((v) => v * e.aberration.distance);
     const sizeCurve = curveOf(e.sizeCurve);
     const { length, at } = plan(from.chars, to.chars, e);
     const spans = Array.from({ length: Math.max(from.chars.length, to.chars.length) }, () => {
-      // Red, green and blue channels. Green alone draws the letter until it splits.
+      // One copy per aberration colour; the first alone draws the letter until it splits.
       const s = document.createElement('span');
       s.style.cssText = 'position:absolute;top:0;transform-origin:center;isolation:isolate';
-      s.append(...[0, 1, 2].map(() => document.createElement('span')));
-      s.children[0].style.cssText = s.children[2].style.cssText = 'position:absolute;left:0;top:0;mix-blend-mode:plus-lighter';
-      s.children[1].style.mixBlendMode = 'plus-lighter';
+      s.append(...tints.map(() => document.createElement('span')));
+      for (const c of [...s.children].slice(1)) c.style.cssText = 'position:absolute;left:0;top:0';
+      for (const c of s.children) c.style.mixBlendMode = 'plus-lighter';
       return s;
     });
     this.layer.replaceChildren(...spans);
@@ -215,19 +226,19 @@ export class Respell {
           e.glow.shadows
             .map((sh) => `${sh.x ?? 0}px ${sh.y ?? 0}px ${sh.blur ?? 0}px rgb(${glow.join(' ')} / ${l.glow * (sh.opacity ?? 1)})`)
             .join(', ') || 'none';
-        const [red, green, blue] = s.children;
-        for (const c of s.children) c.textContent = w.chars[i];
         s.style.left = `${w.xs[i]}px`;
         s.style.opacity = l.opacity;
         s.style.filter = `blur(${l.blur}px)`;
         s.style.transform = `translate(${l.x}px, ${l.y}px) scale(${l.scale})`;
-        red.style.display = blue.style.display = split ? '' : 'none';
-        red.style.color = `rgb(${r} 0 0)`;
-        red.style.transform = `translateX(${-l.aberration}px)`;
-        blue.style.color = `rgb(0 0 ${b})`;
-        blue.style.transform = `translateX(${l.aberration}px)`;
-        green.style.color = split ? `rgb(0 ${g} 0)` : `rgb(${r} ${g} ${b})`;
-        green.style.textShadow = shadow;
+        const n = tints.length;
+        [...s.children].forEach((c, k) => {
+          c.textContent = w.chars[i];
+          c.style.display = split || k === 0 ? '' : 'none';
+          c.style.textShadow = k === 0 ? shadow : 'none';
+          const at = split && n > 1 ? (k / (n - 1)) * 2 - 1 : 0;
+          c.style.transform = `translate(${reach[0] * l.aberration * at}px, ${reach[1] * l.aberration * at}px)`;
+          c.style.color = split ? `rgb(${r * tints[k][0]} ${g * tints[k][1]} ${b * tints[k][2]})` : `rgb(${r} ${g} ${b})`;
+        });
       });
       this.frame = requestAnimationFrame(tick);
     };

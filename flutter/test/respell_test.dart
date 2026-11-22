@@ -93,11 +93,56 @@ void main() {
 
   test('chromatic splits letters while they blur and joins them sharp', () {
     final out = RespellEffect.chromatic.swapOut;
-    expect(out.lookAt(1, Curves.linear).aberration, 8);
-    expect(out.lookAt(.5, Curves.linear).aberration, 4);
+    expect(out.lookAt(1, Curves.linear).aberration, .6);
+    expect(out.lookAt(.5, Curves.linear).aberration, .3);
     expect(
       RespellEffect.chromatic.swapIn.lookAt(1, Curves.linear).aberration,
       0,
     );
+  });
+
+  test('the split is configurable and keeps value equality', () {
+    final custom = RespellEffect.chromatic.copyWith(
+      aberration: const RespellAberration(
+        distance: 20,
+        angle: 1,
+        colors: [Color(0xFFFF00FF), Color(0xFF00FF00)],
+      ),
+    );
+    expect(custom.aberration.distance, 20);
+    expect(custom.aberration.colors, hasLength(2));
+    expect(custom.swapOut, RespellEffect.chromatic.swapOut);
+    expect(
+      custom,
+      RespellEffect.chromatic.copyWith(
+        aberration: const RespellAberration(
+          distance: 20,
+          angle: 1,
+          colors: [Color(0xFFFF00FF), Color(0xFF00FF00)],
+        ),
+      ),
+    );
+  });
+
+  testWidgets('a custom split paints through a whole morph', (t) async {
+    Widget w(String text) => Directionality(
+      textDirection: TextDirection.ltr,
+      child: Respell(
+        text,
+        effect: RespellEffect.chromatic.copyWith(
+          aberration: const RespellAberration(
+            distance: 30,
+            colors: [Color(0xFFFF0000), Color(0xFF00FFFF)],
+          ),
+        ),
+      ),
+    );
+    await t.pumpWidget(w('zim'));
+    await t.pumpWidget(w('Results'));
+    for (var i = 0; i < 10; i++) {
+      await t.pump(const Duration(milliseconds: 60));
+    }
+    await t.pumpAndSettle();
+    expect(t.takeException(), isNull);
   });
 }

@@ -35,6 +35,7 @@ Change `title` to morph.
 | `animateSize` | `bool` | `true` | Whether the width moves from the old text's width to the new one's. |
 | `sizeCurve` | `Curve` | `Curves.linear` | Eases that width over the whole morph. |
 | `holdCommonPrefix` | `bool` | `false` | Whether letters the texts share at the start stay still. |
+| `aberration` | `RespellAberration` | red, green, blue, 14 px | How letters split while their look has `aberration`. |
 
 The default phases are `RespellEffect.defaultSwapOut`, `defaultSwapIn`, `defaultWrite` and `defaultErase`. Each class has `copyWith`.
 
@@ -57,16 +58,51 @@ The default phases are `RespellEffect.defaultSwapOut`, `defaultSwapIn`, `default
 | `offset` | `Offset.zero` | Shift from the letter's place. |
 | `scale` | 1 | Scale around the letter's centre. |
 | `glow` | 0 | How strongly the glow shows, 0 to 1. |
-| `aberration` | 0 | Split between the red, green and blue channels in logical pixels: red shifts left, blue right. |
+| `aberration` | 0 | How far the letter splits into `RespellAberration.colors`: 0 whole, 1 the full `distance`. |
 
 `RespellEffect.sharp` is the plain letter.
+
+### `RespellAberration`
+
+| Field | Default | What it does |
+| --- | --- | --- |
+| `distance` | 14 | How far each end copy moves at full aberration, in logical pixels. |
+| `angle` | 0 | Direction of the split in radians. At 0 the first colour goes left and the last goes right. |
+| `colors` | red, green, blue | One copy of the letter per colour, spread from one end of the split to the other. |
+
+Each copy is the letter's colour multiplied by its split colour, and the copies add together. Colours that add up to white, like red + cyan or red + green + blue, keep the letter's own colour where the copies overlap.
 
 ## Presets
 
 - `RespellEffect()`: the default blur, swap and lime glow.
 - `RespellEffect.chromatic`: letters split into red, green and blue as they blur, with no glow.
 
-Both work as a starting point for `copyWith`.
+Both work as a starting point for `copyWith`:
+
+```dart
+Respell(title, style: style, effect: RespellEffect.chromatic)
+
+Respell(
+  title,
+  style: style,
+  effect: RespellEffect.chromatic.copyWith(
+    aberration: const RespellAberration(
+      distance: 20,
+      angle: .8,
+      colors: [Color(0xFFFF00FF), Color(0xFF00FF00)],
+    ),
+  ),
+)
+
+// The default effect with a pink glow.
+Respell(
+  title,
+  style: style,
+  effect: const RespellEffect(glow: RespellGlow(color: Color(0xFFFF4FA3))),
+)
+```
+
+`style` takes any `TextStyle`: font family, size, weight, colour, letter spacing and so on.
 
 ### `RespellGlow`
 

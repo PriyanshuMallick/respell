@@ -11,7 +11,7 @@ export interface RespellLook {
   scale?: number;
   /** How strongly the glow shows: 0 none, 1 full. Default 0. */
   glow?: number;
-  /** Horizontal split between red, green and blue in px: red left, blue right. Default 0. */
+  /** How far the letter splits into the aberration colours: 0 whole, 1 the full distance. Default 0. */
   aberration?: number;
 }
 
@@ -51,6 +51,20 @@ export interface RespellGlow {
   shadows?: RespellShadow[];
 }
 
+/**
+ * How letters split while their look has `aberration`. Each copy is the
+ * letter multiplied by its colour, added together. Colours that add up to
+ * white keep the letter's colour where copies overlap.
+ */
+export interface RespellAberration {
+  /** px each end copy moves at full aberration. Default 14. */
+  distance?: number;
+  /** Direction in radians; 0 runs the first colour left, the last right. Default 0. */
+  angle?: number;
+  /** Any CSS colours, from one end of the split to the other. Default red, green, blue. */
+  colors?: string[];
+}
+
 /** Every field falls back to `defaultEffect`. */
 export interface RespellEffect {
   /** A letter both texts have, leaving with the old letter. */
@@ -78,6 +92,8 @@ export interface RespellEffect {
   sizeCurve?: RespellCurve;
   /** Whether letters the texts share at the start stay still. Default false. */
   holdCommonPrefix?: boolean;
+  /** Merged over the default split. */
+  aberration?: RespellAberration;
 }
 
 export interface RespellOptions extends RespellEffect {
@@ -87,9 +103,14 @@ export interface RespellOptions extends RespellEffect {
   onComplete?: () => void;
 }
 
-export declare const defaultEffect: Readonly<Required<Omit<RespellEffect, 'glow'>> & { glow: Required<Omit<RespellGlow, 'color'>> }>;
+export declare const defaultEffect: Readonly<
+  Required<Omit<RespellEffect, 'glow' | 'aberration'>> & {
+    glow: Required<Omit<RespellGlow, 'color'>>;
+    aberration: Required<RespellAberration>;
+  }
+>;
 
-/** Letters split into red, green and blue as they blur, with no glow. */
+/** Letters split into the `aberration` colours as they blur, with no glow. */
 export declare const chromaticEffect: Readonly<RespellEffect>;
 
 /** Text in `el` that changes in one wave across its letters. */

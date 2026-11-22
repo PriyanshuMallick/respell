@@ -51,12 +51,13 @@ Every field is optional and falls back to `defaultEffect`, which is exported.
 | `animateSize` | boolean | `true` | Whether the width moves from the old text's width to the new one's. |
 | `sizeCurve` | curve | linear | Eases that width over the whole morph. |
 | `holdCommonPrefix` | boolean | `false` | Whether letters the texts share at the start stay still. |
+| `aberration` | `{ distance, angle, colors }` | 14 px, 0, `['#f00', '#0f0', '#00f']` | How letters split while their look has `aberration`. `angle` is in radians. `colors` are any CSS colours, from one end of the split to the other. Merged over the default. |
 | `respectReducedMotion` | boolean | `true` | Swap at once under `prefers-reduced-motion: reduce`. |
 | `onComplete` | `() => void` | none | Called when a morph finishes. Not called if a newer text cuts it short. |
 
 - **Curve:** a function `t => eased`, or cubic-bezier points `[x1, y1, x2, y2]`.
 - **Phase:** `{ duration, keyframes: [{ at, look }], curve? }`. Keyframes are ordered by `at`, first at 0 and last at 1.
-- **Look:** `{ blur, opacity, x, y, scale, glow, aberration }`. A missing field means the plain letter: blur 0, opacity 1, no shift, scale 1, glow 0, no aberration. `aberration` splits red, green and blue apart by that many px: red left, blue right.
+- **Look:** `{ blur, opacity, x, y, scale, glow, aberration }`. A missing field means the plain letter: blur 0, opacity 1, no shift, scale 1, glow 0, no aberration. `aberration` runs from 0 (whole) to 1 (split by the full distance).
 - **Glow:** `color` is any CSS colour. If unset, it falls back to the `--respell-glow` CSS variable, then `#C0F250`. Each shadow is `{ opacity, blur, x, y }` in the glow colour.
 
 ```js
@@ -77,9 +78,17 @@ const effect = {
 ```js
 import { chromaticEffect } from 'respell';
 
-<Respell text={title} effect={{ ...chromaticEffect, stagger: 30 }} />
+<Respell text={title} effect={chromaticEffect} />
+
+<Respell
+  text={title}
+  effect={{ ...chromaticEffect, aberration: { distance: 20, angle: 0.8, colors: ['#f0f', '#0f0'] } }}
+/>
+
+// The default effect with a pink glow.
+<Respell text={title} effect={{ glow: { color: '#ff4fa3' } }} />
 ```
 
-The text takes its font and colour from CSS, and the element becomes `inline-block`. Supports left-to-right text only.
+The text takes its font and colour from CSS (`style`, `className` or any stylesheet), so any font, size, weight or colour works, and the element becomes `inline-block`. Supports left-to-right text only.
 
 Run the demo with `python3 -m http.server` in this folder, then open `/demo/`.

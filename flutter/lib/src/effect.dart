@@ -16,7 +16,7 @@ class RespellLook {
   }) : assert(blur >= 0),
        assert(opacity >= 0 && opacity <= 1),
        assert(glow >= 0 && glow <= 1),
-       assert(aberration >= 0);
+       assert(aberration >= 0 && aberration <= 1);
 
   /// Gaussian blur sigma, in logical pixels.
   final double blur;
@@ -33,8 +33,8 @@ class RespellLook {
   /// How strongly [RespellGlow] shows: 0 is none, 1 is full.
   final double glow;
 
-  /// Horizontal split between the red, green and blue channels, in logical
-  /// pixels: red shifts left, blue right.
+  /// How far the letter splits into [RespellAberration.colors]: 0 is whole,
+  /// 1 is the full [RespellAberration.distance].
   final double aberration;
 
   static RespellLook lerp(RespellLook a, RespellLook b, double t) =>
@@ -44,9 +44,7 @@ class RespellLook {
         offset: Offset.lerp(a.offset, b.offset, t)!,
         scale: ui.lerpDouble(a.scale, b.scale, t)!,
         glow: ui.lerpDouble(a.glow, b.glow, t)!.clamp(0, 1),
-        aberration: ui
-            .lerpDouble(a.aberration, b.aberration, t)!
-            .clamp(0, double.infinity),
+        aberration: ui.lerpDouble(a.aberration, b.aberration, t)!.clamp(0, 1),
       );
 
   RespellLook copyWith({
@@ -223,6 +221,57 @@ class RespellGlow {
   int get hashCode => Object.hash(color, tint, Object.hashAll(shadows));
 }
 
+/// How letters split while [RespellLook.aberration] is above 0.
+///
+/// The letter is drawn once per colour, each copy multiplied by its colour
+/// and added together, spread evenly along [angle] up to [distance] apart at
+/// either end. Colours that add up to white keep the letter's own colour
+/// where the copies overlap.
+@immutable
+class RespellAberration {
+  const RespellAberration({
+    this.distance = 14,
+    this.angle = 0,
+    this.colors = const [
+      Color(0xFFFF0000),
+      Color(0xFF00FF00),
+      Color(0xFF0000FF),
+    ],
+  });
+
+  /// How far each end copy moves from the letter at full aberration, in
+  /// logical pixels.
+  final double distance;
+
+  /// Direction of the split in radians: 0 runs the first colour left and the
+  /// last right.
+  final double angle;
+
+  /// Colours from one end of the split to the other. One colour draws a
+  /// single unshifted copy.
+  final List<Color> colors;
+
+  RespellAberration copyWith({
+    double? distance,
+    double? angle,
+    List<Color>? colors,
+  }) => RespellAberration(
+    distance: distance ?? this.distance,
+    angle: angle ?? this.angle,
+    colors: colors ?? this.colors,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is RespellAberration &&
+      other.distance == distance &&
+      other.angle == angle &&
+      listEquals(other.colors, colors);
+
+  @override
+  int get hashCode => Object.hash(distance, angle, Object.hashAll(colors));
+}
+
 /// Which way the wave runs across the letters.
 enum RespellWave {
   /// Left to right when the text grows or keeps its length, right to left
@@ -256,6 +305,7 @@ class RespellEffect {
     this.animateSize = true,
     this.sizeCurve = Curves.linear,
     this.holdCommonPrefix = false,
+    this.aberration = const RespellAberration(),
   });
 
   /// A letter both texts have, leaving with the old letter.
@@ -288,6 +338,9 @@ class RespellEffect {
 
   /// Whether letters the two texts share at the start stay still.
   final bool holdCommonPrefix;
+
+  /// How letters split while their look has [RespellLook.aberration].
+  final RespellAberration aberration;
 
   static const sharp = RespellLook();
 
@@ -339,7 +392,8 @@ class RespellEffect {
     ],
   );
 
-  /// Letters split into red, green and blue as they blur, with no glow.
+  /// Letters split into [aberration]'s colours as they blur, with no glow.
+  /// Change the split with `copyWith(aberration: RespellAberration(...))`.
   static const chromatic = RespellEffect(
     swapOut: RespellPhase(
       duration: Duration(milliseconds: 150),
@@ -351,7 +405,7 @@ class RespellEffect {
             blur: 3,
             opacity: .6,
             offset: Offset(0, -6),
-            aberration: 8,
+            aberration: .6,
           ),
         ),
       ],
@@ -365,7 +419,7 @@ class RespellEffect {
             blur: 3,
             opacity: .6,
             offset: Offset(0, 6),
-            aberration: 8,
+            aberration: .6,
           ),
         ),
         RespellKeyframe(1, sharp),
@@ -376,14 +430,9 @@ class RespellEffect {
       keyframes: [
         RespellKeyframe(
           0,
-          RespellLook(
-            blur: 6,
-            opacity: 0,
-            offset: Offset(0, 4),
-            aberration: 14,
-          ),
+          RespellLook(blur: 6, opacity: 0, offset: Offset(0, 4), aberration: 1),
         ),
-        RespellKeyframe(.4, RespellLook(blur: 2, opacity: .8, aberration: 8)),
+        RespellKeyframe(.4, RespellLook(blur: 2, opacity: .8, aberration: .6)),
         RespellKeyframe(1, sharp),
       ],
     ),
@@ -391,15 +440,10 @@ class RespellEffect {
       duration: Duration(milliseconds: 340),
       keyframes: [
         RespellKeyframe(0, sharp),
-        RespellKeyframe(.6, RespellLook(blur: 2, opacity: .8, aberration: 8)),
+        RespellKeyframe(.6, RespellLook(blur: 2, opacity: .8, aberration: .6)),
         RespellKeyframe(
           1,
-          RespellLook(
-            blur: 6,
-            opacity: 0,
-            offset: Offset(0, 4),
-            aberration: 14,
-          ),
+          RespellLook(blur: 6, opacity: 0, offset: Offset(0, 4), aberration: 1),
         ),
       ],
     ),
@@ -418,6 +462,7 @@ class RespellEffect {
     bool? animateSize,
     Curve? sizeCurve,
     bool? holdCommonPrefix,
+    RespellAberration? aberration,
   }) => RespellEffect(
     swapOut: swapOut ?? this.swapOut,
     swapIn: swapIn ?? this.swapIn,
@@ -430,6 +475,7 @@ class RespellEffect {
     animateSize: animateSize ?? this.animateSize,
     sizeCurve: sizeCurve ?? this.sizeCurve,
     holdCommonPrefix: holdCommonPrefix ?? this.holdCommonPrefix,
+    aberration: aberration ?? this.aberration,
   );
 
   @override
@@ -445,7 +491,8 @@ class RespellEffect {
       other.glow == glow &&
       other.animateSize == animateSize &&
       other.sizeCurve == sizeCurve &&
-      other.holdCommonPrefix == holdCommonPrefix;
+      other.holdCommonPrefix == holdCommonPrefix &&
+      other.aberration == aberration;
 
   @override
   int get hashCode => Object.hash(
@@ -460,6 +507,7 @@ class RespellEffect {
     animateSize,
     sizeCurve,
     holdCommonPrefix,
+    aberration,
   );
 }
 

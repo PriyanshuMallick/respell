@@ -116,7 +116,7 @@ class _RespellState extends State<Respell> with SingleTickerProviderStateMixin {
           child: child,
         ),
         child: CustomPaint(
-          painter: _Painter(_from, _to, _plan, effect.glow, _clock),
+          painter: _Painter(_from, _to, _plan, effect, _clock),
         ),
       ),
     );
@@ -124,12 +124,12 @@ class _RespellState extends State<Respell> with SingleTickerProviderStateMixin {
 }
 
 class _Painter extends CustomPainter {
-  _Painter(this.from, this.to, this.plan, this.glow, this.clock)
+  _Painter(this.from, this.to, this.plan, this.effect, this.clock)
     : super(repaint: clock);
 
   final TextPainter from, to;
   final RespellPlan plan;
-  final RespellGlow glow;
+  final RespellEffect effect;
   final AnimationController clock;
 
   @override
@@ -142,6 +142,8 @@ class _Painter extends CustomPainter {
       clock.value * plan.length,
     )) {
       if (look.opacity == 0) continue;
+      final glow = effect.glow;
+      final split = effect.aberration;
       final word = fromOld ? from : to;
       final style = (word.text! as TextSpan).style!;
       final color = Color.lerp(style.color, glow.color, look.glow * glow.tint)!;
@@ -172,7 +174,7 @@ class _Painter extends CustomPainter {
           look.offset;
       final box = at & glyph.size;
       canvas.saveLayer(
-        box.inflate(40 + look.blur * 3 + look.aberration),
+        box.inflate(40 + look.blur * 3 + look.aberration * split.distance),
         Paint()
           ..color = Color.fromRGBO(0, 0, 0, look.opacity)
           ..imageFilter = ui.ImageFilter.blur(
@@ -189,27 +191,22 @@ class _Painter extends CustomPainter {
       if (look.aberration == 0) {
         glyph.paint(canvas, at);
       } else {
-        final split = look.aberration;
-        for (final (channel, dx, glowing) in [
-          (
-            Color.from(alpha: color.a, red: color.r, green: 0, blue: 0),
-            -split,
-            false,
-          ),
-          (
-            Color.from(alpha: color.a, red: 0, green: color.g, blue: 0),
-            0.0,
-            true,
-          ),
-          (
-            Color.from(alpha: color.a, red: 0, green: 0, blue: color.b),
-            split,
-            false,
-          ),
-        ]) {
-          final part = lay(channel, glowing ? shadows : const []);
+        final n = split.colors.length;
+        final reach =
+            Offset.fromDirection(split.angle, split.distance) * look.aberration;
+        for (var k = 0; k < n; k++) {
+          final tint = split.colors[k];
+          final part = lay(
+            Color.from(
+              alpha: color.a * tint.a,
+              red: color.r * tint.r,
+              green: color.g * tint.g,
+              blue: color.b * tint.b,
+            ),
+            k == n ~/ 2 ? shadows : const [],
+          );
           canvas.saveLayer(null, Paint()..blendMode = BlendMode.plus);
-          part.paint(canvas, at + Offset(dx, 0));
+          part.paint(canvas, at + reach * (n == 1 ? 0 : k / (n - 1) * 2 - 1));
           canvas.restore();
           part.dispose();
         }
@@ -221,5 +218,8 @@ class _Painter extends CustomPainter {
 
   @override
   bool shouldRepaint(_Painter old) =>
-      old.from != from || old.to != to || old.plan != plan || old.glow != glow;
+      old.from != from ||
+      old.to != to ||
+      old.plan != plan ||
+      old.effect != effect;
 }
