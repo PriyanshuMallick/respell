@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:respell/respell.dart';
+import 'package:respell/src/effect.dart' show RespellPlan;
 
 Widget _morph(String text, {bool reduceMotion = false}) => MediaQuery(
   data: MediaQueryData(disableAnimations: reduceMotion),
@@ -31,5 +32,62 @@ void main() {
     await t.pumpWidget(_morph('zim'));
     expect(find.bySemanticsLabel('zim'), findsOneWidget);
     semantics.dispose();
+  });
+  testWidgets('calls onComplete when the morph ends', (t) async {
+    var done = 0;
+    Widget w(String text) => Directionality(
+      textDirection: TextDirection.ltr,
+      child: Respell(text, onComplete: () => done++),
+    );
+    await t.pumpWidget(w('zim'));
+    await t.pumpWidget(w('Results'));
+    await t.pumpAndSettle();
+    expect(done, 1);
+  });
+
+  test('a phase eases through its keyframes', () {
+    const phase = RespellPhase(
+      duration: Duration(milliseconds: 100),
+      keyframes: [
+        RespellKeyframe(0, RespellLook(blur: 0)),
+        RespellKeyframe(.5, RespellLook(blur: 10)),
+        RespellKeyframe(1, RespellLook(blur: 0)),
+      ],
+    );
+    expect(phase.lookAt(.25, Curves.linear).blur, 5);
+    expect(phase.lookAt(.5, Curves.linear).blur, 10);
+    expect(phase.lookAt(2, Curves.linear).blur, 0);
+  });
+
+  test('the wave and stagger set the length and order', () {
+    const effect = RespellEffect(stagger: Duration(milliseconds: 100));
+    final grow = RespellPlan('ab', 'abcd', effect);
+    expect(grow.delay(0), 0);
+    expect(grow.delay(3), 300);
+    expect(grow.length, 300 + 680);
+    final shrink = RespellPlan('abcd', 'ab', effect);
+    expect(shrink.delay(3), 0);
+    expect(shrink.delay(0), 300);
+    final together = RespellPlan(
+      'abcd',
+      'ab',
+      effect.copyWith(wave: RespellWave.together),
+    );
+    expect(together.delay(0), 0);
+    expect(together.length, 400);
+  });
+
+  test('holdCommonPrefix keeps shared leading letters sharp', () {
+    final plan = RespellPlan(
+      'Results',
+      'Rest',
+      const RespellEffect(holdCommonPrefix: true),
+    );
+    final letters = plan.at(200);
+    for (final l in letters.take(3)) {
+      expect(l.fromOld, isFalse);
+      expect(l.look, RespellEffect.sharp);
+    }
+    expect(letters[3].look, isNot(RespellEffect.sharp));
   });
 }

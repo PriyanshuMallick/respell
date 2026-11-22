@@ -1,6 +1,6 @@
 # respell
 
-Text that changes in one wave across its letters. Letters both strings share blur, slide up and swap. Extra letters of a longer string write on with a glow. Extra letters of a shorter string backspace from the end. No dependencies and no build step. React is optional.
+Text that changes in one wave across its letters. By default, letters both texts share blur, slide up and swap. Extra letters of a longer text write on with a glow. Extra letters of a shorter text backspace from the end. Every part of it can be changed. No dependencies and no build step. React is optional. Types are included.
 
 ```sh
 npm i respell
@@ -11,8 +11,10 @@ npm i respell
 ```jsx
 import { Respell } from 'respell/react';
 
-<Respell text={title} className="title" />
+<Respell text={title} className="title" effect={{ wave: 'together' }} onComplete={() => {}} />
 ```
+
+Other props go to the `span`.
 
 ## Custom element (any framework, or none)
 
@@ -21,25 +23,53 @@ import { Respell } from 'respell/react';
 <respell-text text="Results"></respell-text>
 ```
 
-Change the `text` attribute to morph. Vue, Svelte, Angular and Solid can bind to it like any other attribute.
+Change the `text` attribute to morph. Set the effect through the `options` property: `el.options = { wave: 'together' }`.
 
 ## Vanilla
 
 ```js
 import { Respell } from 'respell';
 
-const morph = new Respell(document.querySelector('h1'), 'Results');
+const morph = new Respell(document.querySelector('h1'), 'Results', { stagger: 30 });
 morph.set('Apps');
 ```
 
-## Styling
+## Options
 
-The text takes its font and colour from CSS. Set the glow colour with a CSS variable:
+Every field is optional and falls back to `defaultEffect`, which is exported.
 
-```css
-.title { --respell-glow: #c0f250; }
+| Option | Type | Default | What it does |
+| --- | --- | --- | --- |
+| `swapOut` | phase | 150 ms, sharp → blurred, up 6 | A letter both texts have, leaving as the old letter. |
+| `swapIn` | phase | 250 ms, blurred, down 6 → sharp | The same letter arriving as the new letter. |
+| `write` | phase | 680 ms, gone → soft → lit → sharp | A letter only the new, longer text has. |
+| `erase` | phase | 340 ms, sharp → lit → soft → gone | A letter only the old, longer text has. |
+| `stagger` | ms | 45 | Delay between one letter's start and the next one's. |
+| `curve` | curve | `[0, 0, 0.2, 1]` | Eases every phase that has no curve of its own. |
+| `wave` | `'auto' \| 'forward' \| 'backward' \| 'together'` | `'auto'` | `auto` runs left to right as the text grows and right to left as it shrinks. |
+| `glow` | `{ color, tint, shadows }` | lime, tint 1, 2 shadows | Merged over the default glow. |
+| `animateSize` | boolean | `true` | Whether the width moves from the old text's width to the new one's. |
+| `sizeCurve` | curve | linear | Eases that width over the whole morph. |
+| `holdCommonPrefix` | boolean | `false` | Whether letters the texts share at the start stay still. |
+| `respectReducedMotion` | boolean | `true` | Swap at once under `prefers-reduced-motion: reduce`. |
+| `onComplete` | `() => void` | none | Called when a morph finishes. Not called if a newer text cuts it short. |
+
+- **Curve:** a function `t => eased`, or cubic-bezier points `[x1, y1, x2, y2]`.
+- **Phase:** `{ duration, keyframes: [{ at, look }], curve? }`. Keyframes are ordered by `at`, first at 0 and last at 1.
+- **Look:** `{ blur, opacity, x, y, scale, glow }`. A missing field means the plain letter: blur 0, opacity 1, no shift, scale 1, glow 0.
+- **Glow:** `color` is any CSS colour. If unset, it falls back to the `--respell-glow` CSS variable, then `#C0F250`. Each shadow is `{ opacity, blur, x, y }` in the glow colour.
+
+```js
+import { defaultEffect } from 'respell';
+
+const effect = {
+  wave: 'together',
+  glow: { color: '#7cc4ff' },
+  swapIn: { duration: 300, keyframes: [{ at: 0, look: { blur: 6, opacity: 0, scale: 0.6 } }, { at: 1, look: {} }] },
+  write: { ...defaultEffect.write, duration: 900 },
+};
 ```
 
-The element becomes `inline-block`. While it morphs, its width moves from the old text's width to the new one's, so centred text drifts into place instead of jumping. With `prefers-reduced-motion: reduce`, the text swaps at once. Supports left-to-right text only.
+The text takes its font and colour from CSS, and the element becomes `inline-block`. Supports left-to-right text only.
 
 Run the demo with `python3 -m http.server` in this folder, then open `/demo/`.

@@ -3,6 +3,25 @@ import 'package:respell/respell.dart';
 
 const _words = ['zim', 'Results', 'Apps', 'Settings', 'Blocked'];
 
+const _style = TextStyle(
+  color: Color(0xFFFFFFFF),
+  fontSize: 48,
+  fontWeight: FontWeight.w700,
+);
+
+/// Every letter at once, scaling in, with a blue glow.
+final _custom = const RespellEffect().copyWith(
+  wave: RespellWave.together,
+  glow: const RespellGlow(color: Color(0xFF7CC4FF)),
+  swapIn: const RespellPhase(
+    duration: Duration(milliseconds: 300),
+    keyframes: [
+      RespellKeyframe(0, RespellLook(blur: 6, opacity: 0, scale: .6)),
+      RespellKeyframe(1, RespellEffect.sharp),
+    ],
+  ),
+);
+
 void main() => runApp(
   const Directionality(textDirection: TextDirection.ltr, child: Demo()),
 );
@@ -23,15 +42,13 @@ class _DemoState extends State<Demo> {
     onTap: () => setState(() => _i = (_i + 1) % _words.length),
     child: ColoredBox(
       color: const Color(0xFF0B0B0B),
-      child: Center(
-        child: Respell(
-          _words[_i],
-          style: const TextStyle(
-            color: Color(0xFFFFFFFF),
-            fontSize: 48,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 48,
+        children: [
+          Respell(_words[_i], style: _style),
+          Respell(_words[_i], style: _style, effect: _custom),
+        ],
       ),
     ),
   );
