@@ -1,4 +1,4 @@
-package com.priyanshumallick.glyph_morph_example
+package com.priyanshumallick.respell_example
 
 import io.flutter.embedding.android.FlutterActivity
 

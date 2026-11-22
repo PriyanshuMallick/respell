@@ -75,9 +75,9 @@ function length(a, b) {
  * Text in `el` that changes in one wave across its letters. Letters both
  * strings have blur, slide up and swap. Extra letters of a longer string
  * write on with a glow; extra letters of a shorter one backspace from the
- * end. The glow colour is the CSS variable `--glyph-morph-glow`.
+ * end. The glow colour is the CSS variable `--respell-glow`.
  */
-export class GlyphMorph {
+export class Respell {
   constructor(el, text = '') {
     this.el = el;
     el.style.display = 'inline-block';
@@ -115,7 +115,7 @@ export class GlyphMorph {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const to = (this.word = this.measure());
     const style = getComputedStyle(this.el);
-    const glow = style.getPropertyValue('--glyph-morph-glow').trim() || '#C0F250';
+    const glow = style.getPropertyValue('--respell-glow').trim() || '#C0F250';
     const base = style.color;
     const ms = length(from.chars, to.chars);
     const spans = Array.from({ length: Math.max(from.chars.length, to.chars.length) }, () => {

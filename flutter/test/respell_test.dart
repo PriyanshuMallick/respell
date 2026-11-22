@@ -1,12 +1,12 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:glyph_morph/glyph_morph.dart';
+import 'package:respell/respell.dart';
 
 Widget _morph(String text, {bool reduceMotion = false}) => MediaQuery(
   data: MediaQueryData(disableAnimations: reduceMotion),
   child: Directionality(
     textDirection: TextDirection.ltr,
-    child: GlyphMorph(text, style: const TextStyle(fontSize: 28)),
+    child: Respell(text, style: const TextStyle(fontSize: 28)),
   ),
 );
 

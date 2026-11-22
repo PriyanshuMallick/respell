@@ -1,8 +1,8 @@
-/** `<glyph-morph text="…">`: morphs whenever `text` changes. */
-export declare class GlyphMorphElement extends HTMLElement {}
+/** `<respell-text text="…">`: morphs whenever `text` changes. */
+export declare class RespellElement extends HTMLElement {}
 
 declare global {
   interface HTMLElementTagNameMap {
-    'glyph-morph': GlyphMorphElement;
+    'respell-text': RespellElement;
   }
 }

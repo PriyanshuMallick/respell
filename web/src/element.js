@@ -1,11 +1,11 @@
-import { GlyphMorph } from './glyph-morph.js';
+import { Respell } from './respell.js';
 
-/** `<glyph-morph text="…">`: morphs whenever `text` changes. */
-export class GlyphMorphElement extends HTMLElement {
+/** `<respell-text text="…">`: morphs whenever `text` changes. */
+export class RespellElement extends HTMLElement {
   static observedAttributes = ['text'];
 
   connectedCallback() {
-    this.morph ??= new GlyphMorph(this, this.getAttribute('text') ?? '');
+    this.morph ??= new Respell(this, this.getAttribute('text') ?? '');
   }
 
   attributeChangedCallback(_, __, text) {
@@ -17,4 +17,4 @@ export class GlyphMorphElement extends HTMLElement {
   }
 }
 
-if (!customElements.get('glyph-morph')) customElements.define('glyph-morph', GlyphMorphElement);
+if (!customElements.get('respell-text')) customElements.define('respell-text', RespellElement);

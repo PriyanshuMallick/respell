@@ -1,4 +1,4 @@
-name: glyph_morph_example
+name: respell_example
 publish_to: none
 version: 1.0.0+1
 
@@ -8,5 +8,5 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  glyph_morph:
+  respell:
     path: ..

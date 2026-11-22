@@ -1,11 +1,11 @@
 {
-  "name": "glyph-morph",
+  "name": "respell",
   "version": "0.1.0",
   "description": "Text that morphs between strings in one wave across its letters: shared letters blur and swap, extra letters write on with a glow, removed letters backspace. Vanilla JS, a custom element and React.",
   "type": "module",
   "sideEffects": ["./src/element.js"],
   "exports": {
-    ".": { "types": "./src/glyph-morph.d.ts", "default": "./src/glyph-morph.js" },
+    ".": { "types": "./src/respell.d.ts", "default": "./src/respell.js" },
     "./element": { "types": "./src/element.d.ts", "default": "./src/element.js" },
     "./react": { "types": "./src/react.d.ts", "default": "./src/react.js" }
   },
@@ -13,7 +13,7 @@
   "peerDependencies": { "react": ">=18" },
   "peerDependenciesMeta": { "react": { "optional": true } },
   "keywords": ["animation", "text", "morph", "transition", "blur", "glow", "react", "web-component"],
-  "repository": { "type": "git", "url": "git+https://github.com/PriyanshuMallick/glyph-morph.git", "directory": "web" },
-  "homepage": "https://github.com/PriyanshuMallick/glyph-morph#readme",
+  "repository": { "type": "git", "url": "git+https://github.com/PriyanshuMallick/respell.git", "directory": "web" },
+  "homepage": "https://github.com/PriyanshuMallick/respell#readme",
   "license": "MIT"
 }

@@ -11,8 +11,8 @@ import 'package:flutter/widgets.dart';
 /// when the text gets shorter. With reduce motion on, the text swaps at once.
 ///
 /// Left-to-right text only.
-class GlyphMorph extends StatefulWidget {
-  const GlyphMorph(
+class Respell extends StatefulWidget {
+  const Respell(
     this.text, {
     super.key,
     this.style,
@@ -28,10 +28,10 @@ class GlyphMorph extends StatefulWidget {
   final Color glow;
 
   @override
-  State<GlyphMorph> createState() => _GlyphMorphState();
+  State<Respell> createState() => _RespellState();
 }
 
-class _GlyphMorphState extends State<GlyphMorph>
+class _RespellState extends State<Respell>
     with SingleTickerProviderStateMixin {
   late final _clock = AnimationController(vsync: this, value: 1);
   TextScaler? _scaler;
@@ -49,7 +49,7 @@ class _GlyphMorphState extends State<GlyphMorph>
   }
 
   @override
-  void didUpdateWidget(GlyphMorph old) {
+  void didUpdateWidget(Respell old) {
     super.didUpdateWidget(old);
     if (widget.text == old.text) return;
     _drop(_from);

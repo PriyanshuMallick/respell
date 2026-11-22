@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:glyph_morph/glyph_morph.dart';
+import 'package:respell/respell.dart';
 
 const _words = ['zim', 'Results', 'Apps', 'Settings', 'Blocked'];
 
@@ -24,7 +24,7 @@ class _DemoState extends State<Demo> {
     child: ColoredBox(
       color: const Color(0xFF0B0B0B),
       child: Center(
-        child: GlyphMorph(
+        child: Respell(
           _words[_i],
           style: const TextStyle(
             color: Color(0xFFFFFFFF),

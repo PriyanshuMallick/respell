@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.priyanshumallick.glyph_morph_example"
+    namespace = "com.priyanshumallick.respell_example"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.priyanshumallick.glyph_morph_example"
+        applicationId = "com.priyanshumallick.respell_example"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

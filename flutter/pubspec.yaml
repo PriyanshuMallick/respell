@@ -1,8 +1,8 @@
-name: glyph_morph
+name: respell
 description: A text widget that morphs between strings in one wave across its letters. Shared letters blur and swap, extra letters write on with a glow, removed letters backspace.
 version: 0.1.0
-repository: https://github.com/PriyanshuMallick/glyph-morph
-issue_tracker: https://github.com/PriyanshuMallick/glyph-morph/issues
+repository: https://github.com/PriyanshuMallick/respell
+issue_tracker: https://github.com/PriyanshuMallick/respell/issues
 topics: [animation, text, transition, widget]
 
 environment:
