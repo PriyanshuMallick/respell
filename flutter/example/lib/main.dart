@@ -42,13 +42,17 @@ class _DemoState extends State<Demo> {
     onTap: () => setState(() => _i = (_i + 1) % _words.length),
     child: ColoredBox(
       color: const Color(0xFF0B0B0B),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        spacing: 48,
-        children: [
-          Respell(_words[_i], style: _style),
-          Respell(_words[_i], style: _style, effect: _custom),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.only(left: 48),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 48,
+          children: [
+            Respell(_words[_i], style: _style),
+            Respell(_words[_i], style: _style, effect: _custom),
+          ],
+        ),
       ),
     ),
   );
