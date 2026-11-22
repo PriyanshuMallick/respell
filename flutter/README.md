@@ -57,8 +57,16 @@ The default phases are `RespellEffect.defaultSwapOut`, `defaultSwapIn`, `default
 | `offset` | `Offset.zero` | Shift from the letter's place. |
 | `scale` | 1 | Scale around the letter's centre. |
 | `glow` | 0 | How strongly the glow shows, 0 to 1. |
+| `aberration` | 0 | Split between the red, green and blue channels in logical pixels: red shifts left, blue right. |
 
 `RespellEffect.sharp` is the plain letter.
+
+## Presets
+
+- `RespellEffect()`: the default blur, swap and lime glow.
+- `RespellEffect.chromatic`: letters split into red, green and blue as they blur, with no glow.
+
+Both work as a starting point for `copyWith`.
 
 ### `RespellGlow`
 

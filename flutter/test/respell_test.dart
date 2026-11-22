@@ -90,4 +90,14 @@ void main() {
     }
     expect(letters[3].look, isNot(RespellEffect.sharp));
   });
+
+  test('chromatic splits letters while they blur and joins them sharp', () {
+    final out = RespellEffect.chromatic.swapOut;
+    expect(out.lookAt(1, Curves.linear).aberration, 8);
+    expect(out.lookAt(.5, Curves.linear).aberration, 4);
+    expect(
+      RespellEffect.chromatic.swapIn.lookAt(1, Curves.linear).aberration,
+      0,
+    );
+  });
 }

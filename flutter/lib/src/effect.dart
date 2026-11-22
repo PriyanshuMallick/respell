@@ -12,9 +12,11 @@ class RespellLook {
     this.offset = Offset.zero,
     this.scale = 1,
     this.glow = 0,
+    this.aberration = 0,
   }) : assert(blur >= 0),
        assert(opacity >= 0 && opacity <= 1),
-       assert(glow >= 0 && glow <= 1);
+       assert(glow >= 0 && glow <= 1),
+       assert(aberration >= 0);
 
   /// Gaussian blur sigma, in logical pixels.
   final double blur;
@@ -31,6 +33,10 @@ class RespellLook {
   /// How strongly [RespellGlow] shows: 0 is none, 1 is full.
   final double glow;
 
+  /// Horizontal split between the red, green and blue channels, in logical
+  /// pixels: red shifts left, blue right.
+  final double aberration;
+
   static RespellLook lerp(RespellLook a, RespellLook b, double t) =>
       RespellLook(
         blur: ui.lerpDouble(a.blur, b.blur, t)!.clamp(0, double.infinity),
@@ -38,6 +44,9 @@ class RespellLook {
         offset: Offset.lerp(a.offset, b.offset, t)!,
         scale: ui.lerpDouble(a.scale, b.scale, t)!,
         glow: ui.lerpDouble(a.glow, b.glow, t)!.clamp(0, 1),
+        aberration: ui
+            .lerpDouble(a.aberration, b.aberration, t)!
+            .clamp(0, double.infinity),
       );
 
   RespellLook copyWith({
@@ -46,12 +55,14 @@ class RespellLook {
     Offset? offset,
     double? scale,
     double? glow,
+    double? aberration,
   }) => RespellLook(
     blur: blur ?? this.blur,
     opacity: opacity ?? this.opacity,
     offset: offset ?? this.offset,
     scale: scale ?? this.scale,
     glow: glow ?? this.glow,
+    aberration: aberration ?? this.aberration,
   );
 
   @override
@@ -61,10 +72,12 @@ class RespellLook {
       other.opacity == opacity &&
       other.offset == offset &&
       other.scale == scale &&
-      other.glow == glow;
+      other.glow == glow &&
+      other.aberration == aberration;
 
   @override
-  int get hashCode => Object.hash(blur, opacity, offset, scale, glow);
+  int get hashCode =>
+      Object.hash(blur, opacity, offset, scale, glow, aberration);
 }
 
 /// A [look] at progress [at] (0 → 1) through a [RespellPhase].
@@ -324,6 +337,73 @@ class RespellEffect {
         RespellLook(blur: 11, opacity: 0, offset: Offset(0, 4), glow: 1),
       ),
     ],
+  );
+
+  /// Letters split into red, green and blue as they blur, with no glow.
+  static const chromatic = RespellEffect(
+    swapOut: RespellPhase(
+      duration: Duration(milliseconds: 150),
+      keyframes: [
+        RespellKeyframe(0, sharp),
+        RespellKeyframe(
+          1,
+          RespellLook(
+            blur: 3,
+            opacity: .6,
+            offset: Offset(0, -6),
+            aberration: 8,
+          ),
+        ),
+      ],
+    ),
+    swapIn: RespellPhase(
+      duration: Duration(milliseconds: 250),
+      keyframes: [
+        RespellKeyframe(
+          0,
+          RespellLook(
+            blur: 3,
+            opacity: .6,
+            offset: Offset(0, 6),
+            aberration: 8,
+          ),
+        ),
+        RespellKeyframe(1, sharp),
+      ],
+    ),
+    write: RespellPhase(
+      duration: Duration(milliseconds: 680),
+      keyframes: [
+        RespellKeyframe(
+          0,
+          RespellLook(
+            blur: 6,
+            opacity: 0,
+            offset: Offset(0, 4),
+            aberration: 14,
+          ),
+        ),
+        RespellKeyframe(.4, RespellLook(blur: 2, opacity: .8, aberration: 8)),
+        RespellKeyframe(1, sharp),
+      ],
+    ),
+    erase: RespellPhase(
+      duration: Duration(milliseconds: 340),
+      keyframes: [
+        RespellKeyframe(0, sharp),
+        RespellKeyframe(.6, RespellLook(blur: 2, opacity: .8, aberration: 8)),
+        RespellKeyframe(
+          1,
+          RespellLook(
+            blur: 6,
+            opacity: 0,
+            offset: Offset(0, 4),
+            aberration: 14,
+          ),
+        ),
+      ],
+    ),
+    glow: RespellGlow.none,
   );
 
   RespellEffect copyWith({

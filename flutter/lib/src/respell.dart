@@ -144,26 +144,26 @@ class _Painter extends CustomPainter {
       if (look.opacity == 0) continue;
       final word = fromOld ? from : to;
       final style = (word.text! as TextSpan).style!;
-      final glyph = TextPainter(
+      final color = Color.lerp(style.color, glow.color, look.glow * glow.tint)!;
+      final shadows = [
+        for (final s in glow.shadows)
+          Shadow(
+            color: glow.color.withValues(
+              alpha: glow.color.a * s.opacity * look.glow,
+            ),
+            blurRadius: s.blurRadius,
+            offset: s.offset,
+          ),
+      ];
+      TextPainter lay(Color color, List<Shadow> shadows) => TextPainter(
         text: TextSpan(
           text: word.plainText[index],
-          style: style.copyWith(
-            color: Color.lerp(style.color, glow.color, look.glow * glow.tint),
-            shadows: [
-              for (final s in glow.shadows)
-                Shadow(
-                  color: glow.color.withValues(
-                    alpha: glow.color.a * s.opacity * look.glow,
-                  ),
-                  blurRadius: s.blurRadius,
-                  offset: s.offset,
-                ),
-            ],
-          ),
+          style: style.copyWith(color: color, shadows: shadows),
         ),
         textDirection: TextDirection.ltr,
         textScaler: word.textScaler,
       )..layout();
+      final glyph = lay(color, shadows);
       final at =
           Offset(
             word.getOffsetForCaret(TextPosition(offset: index), Rect.zero).dx,
@@ -172,7 +172,7 @@ class _Painter extends CustomPainter {
           look.offset;
       final box = at & glyph.size;
       canvas.saveLayer(
-        box.inflate(40 + look.blur * 3),
+        box.inflate(40 + look.blur * 3 + look.aberration),
         Paint()
           ..color = Color.fromRGBO(0, 0, 0, look.opacity)
           ..imageFilter = ui.ImageFilter.blur(
@@ -186,7 +186,34 @@ class _Painter extends CustomPainter {
           ..scale(look.scale)
           ..translate(-box.center.dx, -box.center.dy);
       }
-      glyph.paint(canvas, at);
+      if (look.aberration == 0) {
+        glyph.paint(canvas, at);
+      } else {
+        final split = look.aberration;
+        for (final (channel, dx, glowing) in [
+          (
+            Color.from(alpha: color.a, red: color.r, green: 0, blue: 0),
+            -split,
+            false,
+          ),
+          (
+            Color.from(alpha: color.a, red: 0, green: color.g, blue: 0),
+            0.0,
+            true,
+          ),
+          (
+            Color.from(alpha: color.a, red: 0, green: 0, blue: color.b),
+            split,
+            false,
+          ),
+        ]) {
+          final part = lay(channel, glowing ? shadows : const []);
+          canvas.saveLayer(null, Paint()..blendMode = BlendMode.plus);
+          part.paint(canvas, at + Offset(dx, 0));
+          canvas.restore();
+          part.dispose();
+        }
+      }
       canvas.restore();
       glyph.dispose();
     }

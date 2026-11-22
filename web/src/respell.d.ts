@@ -11,6 +11,8 @@ export interface RespellLook {
   scale?: number;
   /** How strongly the glow shows: 0 none, 1 full. Default 0. */
   glow?: number;
+  /** Horizontal split between red, green and blue in px: red left, blue right. Default 0. */
+  aberration?: number;
 }
 
 /** A look at progress `at` (0 → 1) through a phase. */
@@ -86,6 +88,9 @@ export interface RespellOptions extends RespellEffect {
 }
 
 export declare const defaultEffect: Readonly<Required<Omit<RespellEffect, 'glow'>> & { glow: Required<Omit<RespellGlow, 'color'>> }>;
+
+/** Letters split into red, green and blue as they blur, with no glow. */
+export declare const chromaticEffect: Readonly<RespellEffect>;
 
 /** Text in `el` that changes in one wave across its letters. */
 export declare class Respell {

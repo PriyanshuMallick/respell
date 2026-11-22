@@ -56,7 +56,7 @@ Every field is optional and falls back to `defaultEffect`, which is exported.
 
 - **Curve:** a function `t => eased`, or cubic-bezier points `[x1, y1, x2, y2]`.
 - **Phase:** `{ duration, keyframes: [{ at, look }], curve? }`. Keyframes are ordered by `at`, first at 0 and last at 1.
-- **Look:** `{ blur, opacity, x, y, scale, glow }`. A missing field means the plain letter: blur 0, opacity 1, no shift, scale 1, glow 0.
+- **Look:** `{ blur, opacity, x, y, scale, glow, aberration }`. A missing field means the plain letter: blur 0, opacity 1, no shift, scale 1, glow 0, no aberration. `aberration` splits red, green and blue apart by that many px: red left, blue right.
 - **Glow:** `color` is any CSS colour. If unset, it falls back to the `--respell-glow` CSS variable, then `#C0F250`. Each shadow is `{ opacity, blur, x, y }` in the glow colour.
 
 ```js
@@ -68,6 +68,16 @@ const effect = {
   swapIn: { duration: 300, keyframes: [{ at: 0, look: { blur: 6, opacity: 0, scale: 0.6 } }, { at: 1, look: {} }] },
   write: { ...defaultEffect.write, duration: 900 },
 };
+```
+
+## Presets
+
+`defaultEffect` gives the blur, swap and lime glow. `chromaticEffect` splits letters into red, green and blue as they blur, with no glow. Both are exported, so you can spread one and change a field:
+
+```js
+import { chromaticEffect } from 'respell';
+
+<Respell text={title} effect={{ ...chromaticEffect, stagger: 30 }} />
 ```
 
 The text takes its font and colour from CSS, and the element becomes `inline-block`. Supports left-to-right text only.

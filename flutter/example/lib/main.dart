@@ -9,19 +9,6 @@ const _style = TextStyle(
   fontWeight: FontWeight.w700,
 );
 
-/// Every letter at once, scaling in, with a blue glow.
-final _custom = const RespellEffect().copyWith(
-  wave: RespellWave.together,
-  glow: const RespellGlow(color: Color(0xFF7CC4FF)),
-  swapIn: const RespellPhase(
-    duration: Duration(milliseconds: 300),
-    keyframes: [
-      RespellKeyframe(0, RespellLook(blur: 6, opacity: 0, scale: .6)),
-      RespellKeyframe(1, RespellEffect.sharp),
-    ],
-  ),
-);
-
 void main() => runApp(
   const Directionality(textDirection: TextDirection.ltr, child: Demo()),
 );
@@ -50,7 +37,7 @@ class _DemoState extends State<Demo> {
           spacing: 48,
           children: [
             Respell(_words[_i], style: _style),
-            Respell(_words[_i], style: _style, effect: _custom),
+            Respell(_words[_i], style: _style, effect: RespellEffect.chromatic),
           ],
         ),
       ),

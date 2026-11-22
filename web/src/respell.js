@@ -31,6 +31,39 @@ export const defaultEffect = Object.freeze({
   holdCommonPrefix: false,
 });
 
+/** Letters split into red, green and blue as they blur, with no glow. */
+export const chromaticEffect = Object.freeze({
+  swapOut: { duration: 150, keyframes: [{ at: 0, look: sharp }, { at: 1, look: { blur: 3, opacity: 0.6, y: -6, aberration: 8 } }] },
+  swapIn: { duration: 250, keyframes: [{ at: 0, look: { blur: 3, opacity: 0.6, y: 6, aberration: 8 } }, { at: 1, look: sharp }] },
+  write: {
+    duration: 680,
+    keyframes: [
+      { at: 0, look: { blur: 6, opacity: 0, y: 4, aberration: 14 } },
+      { at: 0.4, look: { blur: 2, opacity: 0.8, aberration: 8 } },
+      { at: 1, look: sharp },
+    ],
+  },
+  erase: {
+    duration: 340,
+    keyframes: [
+      { at: 0, look: sharp },
+      { at: 0.6, look: { blur: 2, opacity: 0.8, aberration: 8 } },
+      { at: 1, look: { blur: 6, opacity: 0, y: 4, aberration: 14 } },
+    ],
+  },
+  glow: { tint: 0, shadows: [] },
+});
+
+// [r, g, b] of a CSS colour as the page resolves it.
+function rgbOf(el, color) {
+  const probe = document.createElement('span');
+  probe.style.color = color;
+  el.append(probe);
+  const [r, g, b] = getComputedStyle(probe).color.match(/[\d.]+/g).map(Number);
+  probe.remove();
+  return [r, g, b];
+}
+
 // A curve as a function, from a function or cubic-bezier points.
 function curveOf(c) {
   if (typeof c === 'function') return c;
@@ -48,7 +81,7 @@ function curveOf(c) {
 }
 
 const mix = (a, b, t) => a + (b - a) * t;
-const full = (l) => ({ blur: 0, opacity: 1, x: 0, y: 0, scale: 1, glow: 0, ...l });
+const full = (l) => ({ blur: 0, opacity: 1, x: 0, y: 0, scale: 1, glow: 0, aberration: 0, ...l });
 
 function lerpLook(a, b, t) {
   const out = {};
@@ -56,6 +89,7 @@ function lerpLook(a, b, t) {
   out.blur = Math.max(out.blur, 0);
   out.opacity = Math.min(Math.max(out.opacity, 0), 1);
   out.glow = Math.min(Math.max(out.glow, 0), 1);
+  out.aberration = Math.max(out.aberration, 0);
   return out;
 }
 
@@ -148,13 +182,18 @@ export class Respell {
     if (respectReducedMotion && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const to = (this.word = this.measure());
     const style = getComputedStyle(this.el);
-    const glow = e.glow.color || style.getPropertyValue('--respell-glow').trim() || '#C0F250';
-    const base = style.color;
+    const glowColor = e.glow.color || style.getPropertyValue('--respell-glow').trim() || '#C0F250';
+    const glow = rgbOf(this.el, glowColor);
+    const base = rgbOf(this.el, style.color);
     const sizeCurve = curveOf(e.sizeCurve);
     const { length, at } = plan(from.chars, to.chars, e);
     const spans = Array.from({ length: Math.max(from.chars.length, to.chars.length) }, () => {
+      // Red, green and blue channels. Green alone draws the letter until it splits.
       const s = document.createElement('span');
-      s.style.cssText = 'position:absolute;top:0;transform-origin:center';
+      s.style.cssText = 'position:absolute;top:0;transform-origin:center;isolation:isolate';
+      s.append(...[0, 1, 2].map(() => document.createElement('span')));
+      s.children[0].style.cssText = s.children[2].style.cssText = 'position:absolute;left:0;top:0;mix-blend-mode:plus-lighter';
+      s.children[1].style.mixBlendMode = 'plus-lighter';
       return s;
     });
     this.layer.replaceChildren(...spans);
@@ -170,16 +209,25 @@ export class Respell {
       at(t).forEach(([fromOld, i, l], k) => {
         const s = spans[k];
         const w = fromOld ? from : to;
-        s.textContent = w.chars[i];
+        const [r, g, b] = [0, 1, 2].map((c) => mix(base[c], glow[c], l.glow * e.glow.tint));
+        const split = l.aberration > 0.01;
+        const shadow =
+          e.glow.shadows
+            .map((sh) => `${sh.x ?? 0}px ${sh.y ?? 0}px ${sh.blur ?? 0}px rgb(${glow.join(' ')} / ${l.glow * (sh.opacity ?? 1)})`)
+            .join(', ') || 'none';
+        const [red, green, blue] = s.children;
+        for (const c of s.children) c.textContent = w.chars[i];
         s.style.left = `${w.xs[i]}px`;
         s.style.opacity = l.opacity;
         s.style.filter = `blur(${l.blur}px)`;
         s.style.transform = `translate(${l.x}px, ${l.y}px) scale(${l.scale})`;
-        s.style.color = `color-mix(in srgb, ${glow} ${l.glow * e.glow.tint * 100}%, ${base})`;
-        s.style.textShadow =
-          e.glow.shadows
-            .map((sh) => `${sh.x ?? 0}px ${sh.y ?? 0}px ${sh.blur ?? 0}px color-mix(in srgb, ${glow} ${l.glow * (sh.opacity ?? 1) * 100}%, transparent)`)
-            .join(', ') || 'none';
+        red.style.display = blue.style.display = split ? '' : 'none';
+        red.style.color = `rgb(${r} 0 0)`;
+        red.style.transform = `translateX(${-l.aberration}px)`;
+        blue.style.color = `rgb(0 0 ${b})`;
+        blue.style.transform = `translateX(${l.aberration}px)`;
+        green.style.color = split ? `rgb(0 ${g} 0)` : `rgb(${r} ${g} ${b})`;
+        green.style.textShadow = shadow;
       });
       this.frame = requestAnimationFrame(tick);
     };
