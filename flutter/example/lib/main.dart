@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:glyph_morph/glyph_morph.dart';
 
-const _words = ['zim', 'Results', 'Apps', 'Settings', 'Blocked', 'zim'];
+const _words = ['zim', 'Results', 'Apps', 'Settings', 'Blocked'];
 
 void main() => runApp(
   const Directionality(textDirection: TextDirection.ltr, child: Demo()),

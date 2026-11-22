@@ -5,7 +5,7 @@ export class GlyphMorphElement extends HTMLElement {
   static observedAttributes = ['text'];
 
   connectedCallback() {
-    this.morph ??= new GlyphMorph(this, this.getAttribute('text') ?? this.textContent);
+    this.morph ??= new GlyphMorph(this, this.getAttribute('text') ?? '');
   }
 
   attributeChangedCallback(_, __, text) {

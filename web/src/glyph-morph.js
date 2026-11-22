@@ -44,10 +44,13 @@ function at(frames, p) {
   return frames[frames.length - 1][1];
 }
 
+// Start of letter i's part of the wave.
+const delayer = (a, b) => (i) => (a.length > b.length ? a.length - 1 - i : i) * stagger;
+
 /** Letters of a and b as they look ms into the morph: [word, index, look][]. */
 function letters(a, b, ms) {
   const n = Math.min(a.length, b.length);
-  const delay = (i) => (a.length > b.length ? a.length - 1 - i : i) * stagger;
+  const delay = delayer(a, b);
   const out = [];
   for (let i = 0; i < n; i++) {
     const t = ms - delay(i);
@@ -60,7 +63,7 @@ function letters(a, b, ms) {
 
 function length(a, b) {
   const n = Math.min(a.length, b.length);
-  const delay = (i) => (a.length > b.length ? a.length - 1 - i : i) * stagger;
+  const delay = delayer(a, b);
   let ms = 0;
   for (let i = 0; i < n; i++) ms = Math.max(ms, delay(i) + blurOutTime + blurInTime);
   for (let i = n; i < a.length; i++) ms = Math.max(ms, delay(i) + backspaceTime);
@@ -86,7 +89,6 @@ export class GlyphMorph {
     this.layer.style.cssText = 'position:absolute;inset:0;pointer-events:none';
     el.replaceChildren(this.text, this.layer);
     this.text.textContent = text;
-    this.word = null;
   }
 
   // The shown word's letters, their x offsets and its width.
