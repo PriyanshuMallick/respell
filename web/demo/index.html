@@ -1,0 +1,35 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>glyph-morph</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-content: center; gap: 48px; background: #0b0b0b; color: #fff; font: 700 56px/1.2 system-ui, sans-serif; text-align: center; cursor: pointer; user-select: none; }
+  small { font: 400 14px system-ui; color: #888; }
+</style>
+<script type="importmap">
+  { "imports": { "react": "https://esm.sh/react@18.3.1", "react-dom/client": "https://esm.sh/react-dom@18.3.1/client" } }
+</script>
+<div><glyph-morph id="el" text="zim"></glyph-morph></div>
+<div id="react"></div>
+<small>Tap anywhere. Top: custom element. Bottom: React.</small>
+<script type="module">
+  import '../src/element.js';
+  import { createElement, useState, useEffect } from 'react';
+  import { createRoot } from 'react-dom/client';
+  import { GlyphMorph } from '../src/react.js';
+
+  const words = ['zim', 'Results', 'Apps', 'Settings', 'Blocked'];
+  let i = 0;
+  const listeners = new Set();
+  document.body.onclick = () => {
+    i = (i + 1) % words.length;
+    document.getElementById('el').setAttribute('text', words[i]);
+    listeners.forEach((f) => f(words[i]));
+  };
+  function App() {
+    const [text, setText] = useState(words[0]);
+    useEffect(() => (listeners.add(setText), () => listeners.delete(setText)), []);
+    return createElement(GlyphMorph, { text, style: { '--glyph-morph-glow': '#7cc4ff' } });
+  }
+  createRoot(document.getElementById('react')).render(createElement(App));
+</script>
