@@ -13,11 +13,11 @@
 <div id="react"></div>
 <small>Tap anywhere. Top: custom element. Bottom: React, chromatic aberration.</small>
 <script type="module">
-  import '../src/element.js';
+  import '../dist/element.js';
   import { createElement, useState, useEffect } from 'react';
   import { createRoot } from 'react-dom/client';
-  import { Respell } from '../src/react.js';
-  import { chromaticEffect } from '../src/respell.js';
+  import { Respell } from '../dist/react.js';
+  import { chromaticEffect } from '../dist/respell.js';
 
   const words = ['zim', 'Results', 'Apps', 'Settings', 'Blocked'];
   let i = 0;

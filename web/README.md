@@ -1,6 +1,6 @@
 # respell
 
-Text that changes in one wave across its letters. By default, letters both texts share blur, slide up and swap. Extra letters of a longer text write on with a glow. Extra letters of a shorter text backspace from the end. Every part of it can be changed. No dependencies and no build step. React is optional. Types are included.
+Text that changes in one wave across its letters. By default, letters both texts share blur, slide up and swap. Extra letters of a longer text write on with a glow. Extra letters of a shorter text backspace from the end. Every part of it can be changed. Written in TypeScript and shipped as plain JS with no dependencies. React is optional. Types are included.
 
 ```sh
 npm i respell
@@ -91,4 +91,4 @@ import { chromaticEffect } from 'respell';
 
 The text takes its font and colour from CSS (`style`, `className` or any stylesheet), so any font, size, weight or colour works, and the element becomes `inline-block`. Supports left-to-right text only.
 
-Run the demo with `python3 -m http.server` in this folder, then open `/demo/`.
+Build with `npm i && npm run build`, which compiles `src/` to `dist/`. Run the demo with `python3 -m http.server` in this folder, then open `/demo/`.
