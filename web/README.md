@@ -40,10 +40,10 @@ Every field is optional and falls back to `defaultEffect`, which is exported.
 
 | Option | Type | Default | What it does |
 | --- | --- | --- | --- |
-| `swapOut` | phase | 150 ms, sharp → blurred, up 6 | A letter both texts have, leaving as the old letter. |
-| `swapIn` | phase | 250 ms, blurred, down 6 → sharp | The same letter arriving as the new letter. |
-| `write` | phase | 680 ms, gone → soft → lit → sharp | A letter only the new, longer text has. |
-| `erase` | phase | 340 ms, sharp → lit → soft → gone | A letter only the old, longer text has. |
+| `swapOut` | phase | 240 ms, sharp → blurred and lit, up 6 | A letter both texts have, leaving as the old letter. |
+| `swapIn` | phase | 360 ms, blurred and lit, down 6 → sharp | The same letter arriving as the new letter. |
+| `write` | phase | 600 ms, gone → soft → lit → sharp | A letter only the new, longer text has. |
+| `erase` | phase | 600 ms, sharp → lit → soft → gone | A letter only the old, longer text has. |
 | `stagger` | ms | 45 | Delay between one letter's start and the next one's. |
 | `curve` | curve | `[0, 0, 0.2, 1]` | Eases every phase that has no curve of its own. |
 | `wave` | `'auto' \| 'forward' \| 'backward' \| 'together'` | `'auto'` | `auto` runs left to right as the text grows and right to left as it shrinks. |

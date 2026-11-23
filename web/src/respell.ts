@@ -114,10 +114,10 @@ const sharp: RespellLook = {};
 
 /** The default effect. Every field of an effect you pass falls back to this. */
 export const defaultEffect: Readonly<Effect> = Object.freeze<Effect>({
-  swapOut: { duration: 150, keyframes: [{ at: 0, look: sharp }, { at: 1, look: { blur: 7, opacity: 0.35, y: -6 } }] },
-  swapIn: { duration: 250, keyframes: [{ at: 0, look: { blur: 7, opacity: 0.35, y: 6 } }, { at: 1, look: sharp }] },
+  swapOut: { duration: 240, keyframes: [{ at: 0, look: sharp }, { at: 1, look: { blur: 7, opacity: 0.35, y: -6, glow: 1 } }] },
+  swapIn: { duration: 360, keyframes: [{ at: 0, look: { blur: 7, opacity: 0.35, y: 6, glow: 1 } }, { at: 1, look: sharp }] },
   write: {
-    duration: 680,
+    duration: 600,
     keyframes: [
       { at: 0, look: { blur: 11, opacity: 0, y: 4, glow: 1 } },
       { at: 0.3, look: { blur: 7, opacity: 0.7, glow: 1 } },
@@ -126,7 +126,7 @@ export const defaultEffect: Readonly<Effect> = Object.freeze<Effect>({
     ],
   },
   erase: {
-    duration: 340,
+    duration: 600,
     keyframes: [
       { at: 0, look: sharp },
       { at: 0.3, look: { glow: 1 } },
@@ -149,10 +149,10 @@ export const defaultEffect: Readonly<Effect> = Object.freeze<Effect>({
  * Change the split with `{ ...chromaticEffect, aberration: { distance: 20 } }`.
  */
 export const chromaticEffect: Readonly<RespellEffect> = Object.freeze<RespellEffect>({
-  swapOut: { duration: 150, keyframes: [{ at: 0, look: sharp }, { at: 1, look: { blur: 3, opacity: 0.6, y: -6, aberration: 0.6 } }] },
-  swapIn: { duration: 250, keyframes: [{ at: 0, look: { blur: 3, opacity: 0.6, y: 6, aberration: 0.6 } }, { at: 1, look: sharp }] },
+  swapOut: { duration: 240, keyframes: [{ at: 0, look: sharp }, { at: 1, look: { blur: 3, opacity: 0.6, y: -6, aberration: 1 } }] },
+  swapIn: { duration: 360, keyframes: [{ at: 0, look: { blur: 3, opacity: 0.6, y: 6, aberration: 1 } }, { at: 1, look: sharp }] },
   write: {
-    duration: 680,
+    duration: 600,
     keyframes: [
       { at: 0, look: { blur: 6, opacity: 0, y: 4, aberration: 1 } },
       { at: 0.4, look: { blur: 2, opacity: 0.8, aberration: 0.6 } },
@@ -160,7 +160,7 @@ export const chromaticEffect: Readonly<RespellEffect> = Object.freeze<RespellEff
     ],
   },
   erase: {
-    duration: 340,
+    duration: 600,
     keyframes: [
       { at: 0, look: sharp },
       { at: 0.6, look: { blur: 2, opacity: 0.8, aberration: 0.6 } },
